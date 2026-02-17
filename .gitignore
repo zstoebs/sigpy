@@ -13,6 +13,8 @@ GTAGS
 *.npy
 *.ra
 .idea*
+.venv
+*.lock
 
 # sphinx build folder
 _build
