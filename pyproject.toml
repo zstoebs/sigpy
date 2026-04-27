@@ -10,10 +10,10 @@ authors = [
 license = {text = "BSD"}
 dependencies = [
     "numpy",
-    "pywavelets", 
-    "numba", 
-    "scipy", 
-    "tqdm"
+    "pywavelets",
+    "numba",
+    "scipy",
+    "tqdm",
 ]
 classifiers=[
     "Programming Language :: Python :: 3",

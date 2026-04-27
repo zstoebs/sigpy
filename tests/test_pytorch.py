@@ -12,7 +12,7 @@ if config.pytorch_enabled:
         unittest.main()
 
     devices = [backend.cpu_device]
-    if config.cupy_enabled:
+    if config.cupy_enabled: # cupy is preferred if both enabled
         devices.append(backend.Device(0))
 
     class TestPytorch(unittest.TestCase):
@@ -24,7 +24,7 @@ if config.pytorch_enabled:
                         array = xp.array([1, 2, 3], dtype=dtype)
                         tensor = pytorch.to_pytorch(array)
                         array[0] = 0
-                        torch.testing.assert_allclose(
+                        torch.testing.assert_close(
                             tensor,
                             torch.tensor(
                                 [0, 2, 3],
@@ -41,7 +41,7 @@ if config.pytorch_enabled:
                         array = xp.array([1 + 1j, 2 + 2j, 3 + 3j], dtype=dtype)
                         tensor = pytorch.to_pytorch(array)
                         array[0] = 0
-                        torch.testing.assert_allclose(
+                        torch.testing.assert_close(
                             tensor,
                             torch.tensor(
                                 [[0, 0], [2, 2], [3, 3]],
@@ -132,3 +132,33 @@ if config.pytorch_enabled:
                     x_torch.grad.detach().numpy().ravel(),
                     A.H(A(x) - y).view(np.float64),
                 )
+
+        def test_linop_mul_torch_tensor(self):
+            with self.subTest("real"):
+                A = linop.Identity([3])
+                x = torch.tensor([1.0, 2.0, 3.0])
+                y = A * x
+                torch.testing.assert_close(y, x)
+            with self.subTest("complex"):
+                A = linop.Identity([3])
+                x = torch.tensor([1.+1j*1., 2.+1j*2., 3.+1j*3.])
+                y = A * x
+                torch.testing.assert_close(y, x)
+
+        def test_to_device_torch_to_numpy(self):
+            x = torch.tensor([1.0, 2.0, 3.0], dtype=torch.float32)
+            y = backend.to_device(x, backend.cpu_device)
+            self.assertIsInstance(y, np.ndarray)
+            npt.assert_allclose(y, [1.0, 2.0, 3.0])
+
+        def test_copyto_numpy_from_torch(self):
+            x = torch.tensor([1.0, 2.0, 3.0], dtype=torch.float32)
+            y = np.zeros(3, dtype=np.float32)
+            backend.copyto(y, x)
+            npt.assert_allclose(y, [1.0, 2.0, 3.0])
+
+        def test_copyto_torch_from_numpy(self):
+            x = np.array([1.0, 2.0, 3.0], dtype=np.float32)
+            y = torch.zeros(3, dtype=torch.float32)
+            backend.copyto(y, x)
+            torch.testing.assert_close(y, torch.tensor([1.0, 2.0, 3.0]))

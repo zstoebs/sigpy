@@ -156,7 +156,7 @@ class Linop:
         elif np.isscalar(input):
             M = Multiply(self.ishape, input)
             return Compose([self, M])
-        elif isinstance(input, backend.get_array_module(input).ndarray):
+        elif backend.is_arraylike(input):
             return self.apply(input)
 
         return NotImplemented
